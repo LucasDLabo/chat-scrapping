@@ -2,3 +2,4 @@
 *.session
 venv/
 __pycache__/
+sheet_creds.json
