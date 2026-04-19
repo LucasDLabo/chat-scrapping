@@ -27,12 +27,14 @@ chat_id = int(os.getenv("CHAT_ID"))
 # Session file
 client = TelegramClient('sesion_gastos', api_id, api_hash)
 
+available_types = ['Supermercado', 'Compra', 'Servicio', 'Ropa', 'Entretenimiento', 'Inversion', 'Combustible', 'Deuda', 'Credito']
+
 async def main():
     print(f"--- Reading group messages ---")
     
     # iter_messages read the messages from the recent one to the old one
     # 'limit=10' return the last 10
-    async for message in client.iter_messages(chat_id, limit=20, reverse=True):
+    async for message in client.iter_messages(chat_id, limit=99, reverse=True):
         if message.text:
             
             # Divide a large message into individual messages
@@ -69,6 +71,12 @@ async def main():
                         # Converts date to dd/mm/yyyy
                         date = message.date.strftime("%d/%m/%Y")
 
+                        #Validates if type exist between the options
+                        if type not in available_types:
+                            final_type = "Compra"
+                            print(f"⚠️ Tipo '{type}' no reconocido. Se asignó {final_type} por defecto.")
+                            type = final_type
+                            
                         # --- Insert in Google Sheets ---
                         try:
                             # Insert row with 4 values
