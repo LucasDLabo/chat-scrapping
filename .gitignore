@@ -3,3 +3,4 @@
 venv/
 __pycache__/
 sheet_creds.json
+telegram/last_id.txt
