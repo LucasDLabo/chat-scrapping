@@ -36,6 +36,16 @@ types_map = {
     'Super': 'Supermercado'
 }
 
+def price_is_valid(price):
+    # Remove thousand separators (dots) and replace commas with dots (decimal separator)
+    # Input: 10.000,40 - Output: 10000.40
+    price_formatted = price.replace(".", "").replace(",", ".")
+    try:
+        float(price_formatted)
+        return True
+    except ValueError:
+        return False
+
 # --- 1. Read last ID  ---
 id_file = "last_id.txt"
 if os.path.exists(id_file):
@@ -73,9 +83,9 @@ async def main():
         total_rows = sheet.row_count
 
         for message in OldToNewest_list:
-            print(message)
-            # Validates if the message is acceptable (3 values minimum)
-            if len(message) >= 3: 
+            # Validates if the message is acceptable (5 values minimum)
+            # 5 Values: [ID, Date, Name, Type, Price]
+            if len(message) >= 5: 
                 # Array first position is the date
                 id = message[0]
                 date = message[1]
@@ -85,45 +95,57 @@ async def main():
                 #Array last position is the price
                 price = message[-1]
                 
-                # Join everything except the first and last 2 positions
+                # Join everything except the second and last 2 positions
                 name = " ".join(message[2:-2])
 
-                #Validates if price is a digit
-                if price.isdigit():
+                # If need to write in more rows, add cells
+                if next_row > total_rows:
+                    cells_to_add = 1
+                    sheet.add_rows(cells_to_add)
+                    print(f"↕️ New cell added.")
 
-                    # If need to write in more rows, add cells
-                    if next_row > total_rows:
-                        cells_to_add = 1
-                        sheet.add_rows(cells_to_add)
-                        print(f"↕️ New cell added.")
+                #Dictionary
+                type = types_map.get(type, type)
 
-                    #Dictionary
-                    type = types_map.get(type, type)
+                #Validates if type exist between the options
+                if type not in available_types:
+                    final_type = "Compra"
+                    print(f"⚠️ Product Type:'{type}' not recognized. Saved as '{final_type}'.")
+                    type = final_type
+                
+                dot_position = price.rfind('.')
+                comma_position = price.rfind(',')
+                # If both position are not -1, price is formatted acording to the Google Gheets. Dots removed and comma added (Format: 10000,xx)
+                if dot_position != -1 or comma_position != -1:
+                    if comma_position > dot_position:
+                        # Input: 10.000,54 | Output: 10000,54
+                        price = price.replace(".", "")
+                    else:
+                        # Input: 10,000.54 | Output: 10000,54
+                        price = price.replace(",", "").replace(".", ",")
 
-                    #Validates if type exist between the options
-                    if type not in available_types:
-                        final_type = "Compra"
-                        print(f"⚠️ Product Type:'{type}' not recognized. Saved as '{final_type}'.")
-                        type = final_type
-
+                if price_is_valid(price):
                     # --- Insert in Google Sheets ---
                     try:
                         # Insert row with 4 values
                         data = [date, name, type, price]
                         cell_range = f"A{next_row}:D{next_row}"
                         sheet.update(range_name=cell_range, values=[data], value_input_option='USER_ENTERED')
-                        print(f"✅ Inserted on Row {next_row}: {name} ({type}) ${price} ({id})")
+                        print(f"✅ Inserted on Row {next_row}: {name} ({type}) ${price} - [ID:{id}]")
                         next_row += 1
                     except Exception as e:
                         print(f"❌ Unable to insert: {e}")
+                else:
+                    print(f'⛔ Product {name} does not have a price ( Price:{price} ) ')
             else:
                 print(f"⛔ Product {message} not accepted")
-    # Save last message id 
-    
+        
+        # Save last message id 
         with open(id_file, "w") as f:
             f.write(str(new_last_message_id))
         print(f"💾 Progress Save. Next execution will be with: {new_last_message_id}")
     else:
         print("No new messages to process.")
+
 with client:
     client.loop.run_until_complete(main())
