@@ -1,6 +1,6 @@
-*.env
+creds/
 *.session
 venv/
 __pycache__/
-sheet_creds.json
+*.pyc
 telegram/last_id.txt

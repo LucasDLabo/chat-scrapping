@@ -1,21 +1,33 @@
 import gspread
+import json
 from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
 from telethon import TelegramClient
+from telethon.sessions import StringSession
 import os 
 from dotenv import load_dotenv
-
-# Google Sheets Scope
-scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
-        "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
 
 load_dotenv("./creds/.env")
 api_id = int(os.getenv("API_ID"))
 api_hash = os.getenv("API_HASH")
 chat_id = int(os.getenv("CHAT_ID"))
+session_str = os.getenv("SESSION_STR")
+
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+google_creds_raw = os.getenv("GOOGLE_CREDS_JSON")
+
+if google_creds_raw:
+    creds_dict = json.loads(google_creds_raw)
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+else:
+    creds = ServiceAccountCredentials.from_json_keyfile_name('./creds/sheet_creds.json', scope)
+
+client_gs = gspread.authorize(creds)
+
 
 # Session file
-client = TelegramClient('sesion_gastos', api_id, api_hash)
+client = TelegramClient(StringSession(session_str), api_id, api_hash)
 
 available_types = ['Supermercado', 'Compra', 'Servicio', 'Ropa', 'Entretenimiento', 'Inversion', 'Combustible', 'Deuda', 'Credito']
 NewToOldest_list = []
@@ -75,9 +87,12 @@ async def main():
     try:
         creds = ServiceAccountCredentials.from_json_keyfile_name('creds/sheet_creds.json', scope)
         client_gs = gspread.authorize(creds)
-        # Google Sheet Name
-        sheet = client_gs.open("!Dinero").sheet1 
-        print("✅ Succesful connection to Google Sheets")
+        # Google Sheet file
+        spreadsheet = client_gs.open("!Dinero")
+        
+        # Worksheet name
+        sheet = spreadsheet.worksheet("Compras")
+        print(f"✅ Succesful connection to Google Sheets | File: {spreadsheet} - Sheet: {sheet}")
     except Exception as e:
         print(f"❌ Error to connect Google Sheets: {e}")
         exit()
