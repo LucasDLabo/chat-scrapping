@@ -28,4 +28,4 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           SESSION_STR: ${{ secrets.SESSION_STR }}
           GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}
-        run: python main.py
+        run: python telegram/main.py
