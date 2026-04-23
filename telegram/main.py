@@ -36,7 +36,7 @@ def price_is_valid(price):
     except ValueError:
         return False
 
-# --- 1. Read last ID  ---
+# ---  Read last ID file  ---
 id_file = "last_id.txt"
 if os.path.exists(id_file):
     with open(id_file, "r") as f:
@@ -52,7 +52,7 @@ async def main():
             new_last_message_id = telegram_message.id
 
         if new_last_message_id > last_message_id:
-            # Validates if is it a text in order to avoid stickers and images
+            # Validates if the message is a text in order to avoid reading stickers and images
             if telegram_message.text:
                 # Divide a large message into individual messages - LIST COMPREHENSION
                 words = [
@@ -64,11 +64,6 @@ async def main():
                 NewToOldest_list.extend(words)
                 # Order reversed to properly insert on Google Sheets
                 OldToNewest_list = NewToOldest_list[::-1]
-                # If there are new messages...
-
-                
-
-                
             else:
                 print(f"⚫ Message from date {telegram_message.date} [ID:{telegram_message.id}] is not a text!")
     
@@ -93,9 +88,9 @@ async def main():
 
     for message in OldToNewest_list:
         # Validates if the message is acceptable (5 values minimum)
-        # 5 Values: [ID, Date, Name, Type, Price]
+        # [ID, Date, Name, Type, Price]
         if len(message) >= 5: 
-            # Array first position is the date
+            # Array first positions are ID and Date
             id = message[0]
             date = message[1]
             # Array last but one position is the type of product
@@ -115,9 +110,8 @@ async def main():
 
             #Dictionary
             type = types_map.get(type, type)
-
             
-            
+            # Determines if price has any dots or commas. Return -1 if not
             dot_position = price.rfind('.')
             comma_position = price.rfind(',')
             # If both position are not -1, price is formatted acording to the Google Gheets. Dots removed and comma added (Format: 10000,xx)
@@ -134,7 +128,7 @@ async def main():
                 #Validates if type exist between the options
                 if type not in available_types:
                     final_type = "Compra"
-                    print(f"⚠️ Product Type:'{type}' not recognized. Saved as '{final_type}'.")
+                    print(f"⚠️ Text message {message} does not have a recognizable type. Saved as '{final_type}'.")
                     type = final_type
                 # --- Insert in Google Sheets ---
                 try:
