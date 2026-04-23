@@ -116,11 +116,7 @@ async def main():
             #Dictionary
             type = types_map.get(type, type)
 
-            #Validates if type exist between the options
-            if type not in available_types:
-                final_type = "Compra"
-                print(f"⚠️ Product Type:'{type}' not recognized. Saved as '{final_type}'.")
-                type = final_type
+            
             
             dot_position = price.rfind('.')
             comma_position = price.rfind(',')
@@ -134,6 +130,12 @@ async def main():
                     price = price.replace(",", "").replace(".", ",")
 
             if price_is_valid(price):
+
+                #Validates if type exist between the options
+                if type not in available_types:
+                    final_type = "Compra"
+                    print(f"⚠️ Product Type:'{type}' not recognized. Saved as '{final_type}'.")
+                    type = final_type
                 # --- Insert in Google Sheets ---
                 try:
                     # Insert row with 4 values
@@ -145,9 +147,9 @@ async def main():
                 except Exception as e:
                     print(f"❌ Unable to insert: {e}")
             else:
-                print(f'⛔ Product {name} does not have a price ( Price:{price} ) ')
+                print(f'⛔ Text message {message} not inserted! Price was not found ( Price:{price} ) ')
         else:
-            print(f"⛔ Product {message} only has {len(message)} parts! 5 are necessary.")
+            print(f"⛔ Text message {message} not inserted! It only has {len(message)} parts! 5 are necessary.")
     
     # Save last message id 
     with open(id_file, "w") as f:
