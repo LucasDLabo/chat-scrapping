@@ -85,7 +85,13 @@ async def main():
     print(f"--- Reading group messages post message ID: {last_message_id} ---")
 
     try:
-        creds = ServiceAccountCredentials.from_json_keyfile_name('creds/sheet_creds.json', scope)
+        if google_creds_raw:
+            creds_dict = json.loads(google_creds_raw)
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+            print("✅ Connected using Github Secrets")
+        else:
+            creds = ServiceAccountCredentials.from_json_keyfile_name('creds/sheet_creds.json', scope)
+
         client_gs = gspread.authorize(creds)
         # Google Sheet file
         spreadsheet = client_gs.open("!Dinero")
