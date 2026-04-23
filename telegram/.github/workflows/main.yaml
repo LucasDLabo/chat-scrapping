@@ -1,0 +1,31 @@
+name: Update Google Sheet Budget 2026
+
+on:
+  schedule:
+    - cron: '0 * * * *' 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dowload code
+        uses: actions/checkout@v3
+
+      - name: Python config
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Libraries installation
+        run: 
+          pip install -r requirements.txt
+
+      - name: Run script
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          SESSION_STR: ${{ secrets.SESSION_STR }}
+          GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}
+        run: python main.py
