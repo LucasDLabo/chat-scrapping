@@ -19,7 +19,7 @@ jobs:
 
       - name: Libraries installation
         run: 
-          pip install -r requirements.txt
+          pip install -r telegram/requirements.txt
 
       - name: Run script
         env:
