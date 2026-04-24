@@ -3,4 +3,3 @@ creds/
 venv/
 __pycache__/
 *.pyc
-telegram/last_id.txt

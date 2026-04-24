@@ -49,12 +49,16 @@ def price_is_valid(price):
         return False
 
 # ---  Read last ID file  ---
-id_file = "last_id.txt"
-if os.path.exists(id_file):
-    with open(id_file, "r") as f:
-        last_message_id = int(f.read())
-else:
-    last_message_id = 0
+try:
+    print(f"📡 Fetching last text message ID...")
+    config_sheet = client_gs.open("!Dinero").worksheet("Inicio")
+    # Read saved ID 
+    cell_value = config_sheet.acell('C1').value
+    last_message_id = int(cell_value) if cell_value else 0
+except Exception as e:
+    print(f"❌ Error to read Last ID value {e}")
+    exit()
+
 async def main():
     new_last_message_id = last_message_id
     
@@ -169,8 +173,9 @@ async def main():
             print(f"⛔ Text message {message} not inserted! It only has {len(message)} parts! 5 are necessary.")
     
     # Save last message id 
-    with open(id_file, "w") as f:
-        f.write(str(new_last_message_id))
-    print(f"💾 Progress Save. Next execution will be with messages after ID:{new_last_message_id}")
+    if new_last_message_id > last_message_id:
+        config_sheet.update(range_name='C1', values=[[new_last_message_id]])
+        print(f"💾 Progress Save. Next execution will be with messages after ID:{new_last_message_id}")
+
 with client:
     client.loop.run_until_complete(main())
