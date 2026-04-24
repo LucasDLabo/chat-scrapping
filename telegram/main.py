@@ -74,7 +74,7 @@ async def main():
                 ]
 
                 NewToOldest_list.extend(words)
-                # Order reversed to properly insert on Google Sheets
+                # Order reversed just in case
                 OldToNewest_list = NewToOldest_list[::-1]
             else:
                 print(f"⚫ Message from date {telegram_message.date} [ID:{telegram_message.id}] is not a text!")
@@ -104,10 +104,9 @@ async def main():
         exit()
 
     # How many rows the sheet has
-    next_row = len(sheet.col_values(1)) + 1
     total_rows = sheet.row_count
 
-    for message in OldToNewest_list:
+    for message in NewToOldest_list:
         # Validates if the message is acceptable (5 values minimum)
         # [ID, Date, Name, Type, Price]
         if len(message) >= 5: 
@@ -123,26 +122,31 @@ async def main():
             # Join everything except the second and last 2 positions
             name = " ".join(message[2:-2])
 
-            # If need to write in more rows, add cells
-            if next_row > total_rows:
-                cells_to_add = 1
-                sheet.add_rows(cells_to_add)
-                print(f"↕️ New cell added.")
-
             #Dictionary
             type = types_map.get(type, type)
             
-            # Determines if price has any dots or commas. Return -1 if not
-            dot_position = price.rfind('.')
-            comma_position = price.rfind(',')
-            # If both position are not -1, price is formatted acording to the Google Gheets. Dots removed and comma added (Format: 10000,xx)
-            if dot_position != -1 or comma_position != -1:
-                if comma_position > dot_position:
-                    # Input: 10.000,54 | Output: 10000,54
-                    price = price.replace(".", "")
+            # Format price text messages to return this output: 100000,xx
+            s = str(price).strip()
+            if "." in s and "," in s: # If messages has both separators, the last is the decimal
+                if s.rfind(".") > s.rfind(","):
+                    # Input: 100,000.xx
+                    price = s.replace(",", "").replace(".",",")
                 else:
-                    # Input: 10,000.54 | Output: 10000,54
-                    price = price.replace(",", "").replace(".", ",")
+                    # Input: 100.000,xx
+                    price = s.replace(".", "")
+            elif "," in s: # If only commas...
+                # If there are not 2 decimals...
+                if len(s.split(",")[-1]) != 2:
+                    # Input: 100,000
+                    price = s.replace(",", "")
+            elif "." in s: # If only dots...
+                # If there are not 2 decimals
+                if len(s.split(".")[-1]) != 2:
+                    # Input: 100.000
+                    price = s.replace(".", "")
+                else:
+                    # Input: 100000.xx
+                    price = s.replace(".", ",")
 
             if price_is_valid(price):
 
@@ -155,10 +159,8 @@ async def main():
                 try:
                     # Insert row with 4 values
                     data = [date, name, type, price]
-                    cell_range = f"A{next_row}:D{next_row}"
-                    sheet.update(range_name=cell_range, values=[data], value_input_option='USER_ENTERED')
-                    print(f"✅ Inserted on Row {next_row}: {name} ({type}) ${price} - [ID:{id}]")
-                    next_row += 1
+                    sheet.insert_row(data, index=total_rows)
+                    print(f"✅ Inserted {name} ({type}) ${price} - [ID:{id}]")
                 except Exception as e:
                     print(f"❌ Unable to insert: {e}")
             else:
