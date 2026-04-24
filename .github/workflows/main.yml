@@ -2,7 +2,7 @@ name: Update Google Sheet Budget 2026
 
 on:
   schedule:
-    - cron: '0 * * * *' 
+    - cron: '0 9 * * *' 
   workflow_dispatch:
 
 jobs:
