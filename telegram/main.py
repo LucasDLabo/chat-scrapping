@@ -35,7 +35,13 @@ NewToOldest_list = []
 types_map = {
     'S': 'Servicio',
     'C': 'Compra',
-    'Super': 'Supermercado'
+    'Super': 'Supermercado',
+    'Comb': 'Combustible',
+    'D': 'Deuda',
+    'E': 'Entretenimiento',
+    'R': 'Ropa',
+    'Cred': 'Credito',
+    'I': 'Inversion'
 }
 
 def price_is_valid(price):
