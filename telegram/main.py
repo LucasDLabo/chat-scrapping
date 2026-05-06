@@ -127,8 +127,14 @@ async def main():
             part = message[-2].lower()
             type = (part.rstrip('s') if len(part) > 1 else part).capitalize() #Determines if only a letter 'S' or a word
             #Array last position is the price
-            price = message[-1]
-            
+            price = message[-1].lower().strip()
+
+            #Checks if price is in K
+            if 'k' in price:
+                number = float(price.replace('k', '').replace(',', '.'))
+                price_integer = int(number * 1000)
+                price = str(price_integer)
+
             # Join everything except the second and last 2 positions
             name = " ".join(message[2:-2])
 
