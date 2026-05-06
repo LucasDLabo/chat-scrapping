@@ -129,11 +129,21 @@ async def main():
             #Array last position is the price
             price = message[-1].lower().strip()
 
-            #Checks if price is in K
+            #Checks if the price uses K notation
             if 'k' in price:
-                number = float(price.replace('k', '').replace(',', '.'))
-                price_integer = int(number * 1000)
-                price = str(price_integer)
+                # Split the price bi 'k'. Example: 35.5k,99 > [35.5], [,99]
+                price_parts = price.split('k')
+                
+                # Extract cents: Remove the first character from the second part of the price.
+                # Default to "00" if no cents are provided. 
+                cents = price_parts[1][1:] if len(price_parts[1]) > 1 else "00"
+
+                # Converts the first part of the price to a float and multiply by 1000
+                # Output is converted to a integer to get the clean value
+                integer_price = int(float(price_parts[0].replace(',', '.')) * 1000)
+
+                # String format
+                price = f"{integer_price},{cents}"
 
             # Join everything except the second and last 2 positions
             name = " ".join(message[2:-2])
